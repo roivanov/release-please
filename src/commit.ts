@@ -362,13 +362,14 @@ function hasExtendedContext(line: string) {
 }
 
 function parseCommits(message: string): parser.ConventionalChangelogCommit[] {
-  // console.log(`Romani: ${message}`);
+  // logger.debug(`Romani: ${message}`);
   // debugger;
   try {
     return conventionalCommitsFilter(
       toConventionalChangelogFormat(parser.parser(message))
     ).map(postProcessCommits);
   } catch (_err) {
+    defaultLogger.warn(`Updating commit message as the fix: ${message}`);
     return conventionalCommitsFilter(
       toConventionalChangelogFormat(parser.parser('fix: '+ message))
     ).map(postProcessCommits);
