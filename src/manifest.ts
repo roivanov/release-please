@@ -115,13 +115,13 @@ export interface ReleaserConfig {
   pullRequestTitlePattern?: string;
   pullRequestHeader?: string;
   pullRequestFooter?: string;
+  componentNoSpace?: boolean;
   tagSeparator?: string;
   separatePullRequests?: boolean;
   labels?: string[];
   releaseLabels?: string[];
   extraLabels?: string[];
   initialVersion?: string;
-  signoff?: string;
 
   // Changelog options
   changelogSections?: ChangelogSection[];
@@ -162,7 +162,6 @@ interface ReleaserConfigJson {
   'changelog-sections'?: ChangelogSection[];
   'release-as'?: string;
   'skip-github-release'?: boolean;
-  signoff?: string;
   draft?: boolean;
   prerelease?: boolean;
   'draft-pull-request'?: boolean;
@@ -176,6 +175,7 @@ interface ReleaserConfigJson {
   'pull-request-title-pattern'?: string;
   'pull-request-header'?: string;
   'pull-request-footer'?: string;
+  'component-no-space'?: boolean;
   'separate-pull-requests'?: boolean;
   'tag-separator'?: string;
   'extra-files'?: ExtraFile[];
@@ -257,6 +257,7 @@ export interface ManifestConfig extends ReleaserConfigJson {
   'last-release-sha'?: string;
   'always-link-local'?: boolean;
   plugins?: PluginType[];
+  signoff?: string;
   'group-pull-request-title-pattern'?: string;
   'release-search-depth'?: number;
   'commit-search-depth'?: number;
@@ -389,6 +390,7 @@ export class Manifest {
         targetBranch: this.targetBranch,
         repositoryConfig: this.repositoryConfig,
         manifestPath: this.manifestPath,
+        separatePullRequests: this.separatePullRequests,
       })
     );
     this.pullRequestOverflowHandler = new FilePullRequestOverflowHandler(
@@ -695,7 +697,12 @@ export class Manifest {
           `No latest release found for path: ${path}, component: ${component}, but a previous version (${version.toString()}) was specified in the manifest.`
         );
         releasesByPath[path] = {
-          tag: new TagName(version, component),
+          tag: new TagName(
+            version,
+            component,
+            this.repositoryConfig[path].tagSeparator,
+            this.repositoryConfig[path].includeVInTag
+          ),
           sha: '',
           notes: '',
         };
@@ -790,6 +797,12 @@ export class Manifest {
           !('pullRequestFooter' in mergeOptions)
         ) {
           mergeOptions.pullRequestFooter = config.pullRequestFooter;
+        }
+        if (
+          'componentNoSpace' in config &&
+          !('componentNoSpace' in mergeOptions)
+        ) {
+          mergeOptions.componentNoSpace = config.componentNoSpace;
         }
       }
       this.plugins.push(
@@ -1247,7 +1260,7 @@ export class Manifest {
       const releaseList = githubReleases
         .map(({tagName, url}) => `- [${tagName}](${url})`)
         .join('\n');
-      const comment = `:robot: Created releases:\n${releaseList}\n:sunflower:`;
+      const comment = `🤖 Created releases:\n\n${releaseList}\n\n:sunflower:`;
       await this.github.commentOnIssue(comment, pullRequest.number);
     }
 
@@ -1371,6 +1384,7 @@ function extractReleaserConfig(
     pullRequestTitlePattern: config['pull-request-title-pattern'],
     pullRequestHeader: config['pull-request-header'],
     pullRequestFooter: config['pull-request-footer'],
+    componentNoSpace: config['component-no-space'],
     tagSeparator: config['tag-separator'],
     separatePullRequests: config['separate-pull-requests'],
     labels: config['label']?.split(','),
@@ -1380,7 +1394,6 @@ function extractReleaserConfig(
     initialVersion: config['initial-version'],
     excludePaths: config['exclude-paths'],
     additionalPaths: config['additional-paths'],
-    signoff: config['signoff'],
   };
 }
 
@@ -1425,6 +1438,7 @@ async function parseConfig(
     separatePullRequests: config['separate-pull-requests'],
     groupPullRequestTitlePattern: config['group-pull-request-title-pattern'],
     plugins: config['plugins'],
+    signoff: config['signoff'],
     labels: configLabel?.split(','),
     releaseLabels: configReleaseLabel?.split(','),
     snapshotLabels: configSnapshotLabel?.split(','),
@@ -1545,7 +1559,6 @@ function isPublishedVersion(strategy: Strategy, version: Version): boolean {
  * @param {string} targetBranch Name of the scanned branch.
  * @param releaseFilter Validator function for release version. Used to filter-out SNAPSHOT releases for Java strategy.
  * @param {string} prefix Limit the release to a specific component.
- * @param pullRequestTitlePattern Configured PR title pattern.
  */
 async function latestReleaseVersion(
   github: GitHub,
@@ -1579,7 +1592,7 @@ async function latestReleaseVersion(
   for await (const commitWithPullRequest of generator) {
     commitShas.add(commitWithPullRequest.sha);
     const mergedPullRequest = commitWithPullRequest.pullRequest;
-    if (!mergedPullRequest) {
+    if (!mergedPullRequest?.mergeCommitOid) {
       logger.trace(
         `skipping commit: ${commitWithPullRequest.sha} missing merged pull request`
       );
@@ -1611,6 +1624,7 @@ async function latestReleaseVersion(
     const pullRequestTitle = PullRequestTitle.parse(
       mergedPullRequest.title,
       config.pullRequestTitlePattern,
+      config.componentNoSpace,
       logger
     );
     if (!pullRequestTitle) {
@@ -1729,6 +1743,8 @@ function mergeReleaserConfig(
       pathConfig.pullRequestHeader ?? defaultConfig.pullRequestHeader,
     pullRequestFooter:
       pathConfig.pullRequestFooter ?? defaultConfig.pullRequestFooter,
+    componentNoSpace:
+      pathConfig.componentNoSpace ?? defaultConfig.componentNoSpace,
     separatePullRequests:
       pathConfig.separatePullRequests ?? defaultConfig.separatePullRequests,
     skipSnapshot: pathConfig.skipSnapshot ?? defaultConfig.skipSnapshot,
