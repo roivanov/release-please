@@ -273,6 +273,8 @@ defaults (those are documented in comments)
       "release-type": "node",
       // exclude commits from that path from processing
       "exclude-paths": ["path/to/myPyPkgA"]
+      // include commits from that path in processing
+      "additional-paths": ["path/to/externalPkgB"]
     },
 
     // path segment should be a folder relative to repository root
