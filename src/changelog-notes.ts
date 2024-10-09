@@ -39,7 +39,7 @@ export interface ChangelogSection {
   hidden?: boolean;
 }
 
-const DEFAULT_HEADINGS: Record<string, string> = {
+export const DEFAULT_HEADINGS: Record<string, string> = {
   feat: 'Features',
   fix: 'Bug Fixes',
   perf: 'Performance Improvements',
