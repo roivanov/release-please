@@ -764,6 +764,7 @@ export class Manifest {
         config.draftPullRequest ?? this.draftPullRequest,
         this.labels
       );
+      // debugger;
       if (releasePullRequest) {
         // Update manifest, but only for valid release version - this will skip SNAPSHOT from java strategy
         if (
@@ -943,6 +944,7 @@ export class Manifest {
         );
         if (resultPullRequest) pullRequests.push(resultPullRequest);
       }
+      // debugger;
       return pullRequests;
     } else {
       const promises: Promise<PullRequest | undefined>[] = [];
@@ -956,6 +958,7 @@ export class Manifest {
         );
       }
       const pullNumbers = await Promise.all(promises);
+      // debugger;
       // reject any pull numbers that were not created or updated
       return pullNumbers.filter(number => !!number);
     }
@@ -1035,6 +1038,8 @@ export class Manifest {
       openPullRequest =>
         openPullRequest.headBranchName === pullRequest.headRefName
     );
+    console.log(existing)
+    // debugger;
     if (existing) {
       return this.alwaysUpdate
         ? await this.updateExistingPullRequest(existing, pullRequest)
@@ -1051,6 +1056,7 @@ export class Manifest {
         ? await this.updateExistingPullRequest(snoozed, pullRequest)
         : await this.maybeUpdateSnoozedPullRequest(snoozed, pullRequest);
     }
+    // debugger;
 
     const body = await this.pullRequestOverflowHandler.handleOverflow(
       pullRequest
@@ -1085,6 +1091,7 @@ export class Manifest {
     existing: PullRequest,
     pullRequest: ReleasePullRequest
   ): Promise<PullRequest | undefined> {
+    // debugger;
     // If unchanged, no need to push updates
     if (existing.body === pullRequest.body.toString()) {
       this.logger.info(
@@ -1092,8 +1099,24 @@ export class Manifest {
       );
       return undefined;
     }
-    return await this.updateExistingPullRequest(existing, pullRequest);
-  }
+    try {
+
+    const updatedPullRequest = await this.github.updatePullRequest(
+      existing.number,
+      pullRequest,
+      this.targetBranch,
+      {
+        fork: this.fork,
+        signoffUser: this.signoffUser,
+        pullRequestOverflowHandler: this.pullRequestOverflowHandler,
+      }
+    );
+    return updatedPullRequest;
+    } catch (err) {
+      console.log(err)
+      return undefined
+    }
+}
 
   /// only update a snoozed pull request if it has release note changes
   private async maybeUpdateSnoozedPullRequest(
@@ -1135,6 +1158,7 @@ export class Manifest {
 
   private async *findMergedReleasePullRequests() {
     // Find merged release pull requests
+    // debugger;
     const pullRequestGenerator = this.github.pullRequestIterator(
       this.targetBranch,
       'MERGED',

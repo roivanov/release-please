@@ -378,8 +378,8 @@ function parseCommits(message: string): parser.ConventionalChangelogCommit[] {
     // console.log('parsed:')
     // console.log(parsed)
     const formatted = toConventionalChangelogFormat(parsed)
-    console.log('formatted:')
-    console.log(formatted)
+    // console.log('formatted:')
+    // console.log(formatted)
     for (let index = 0; index < formatted.length; index++) {
       const element = formatted[index];
       if (! Object.keys(DEFAULT_HEADINGS).includes(element.type.toLowerCase())) {
@@ -397,8 +397,8 @@ function parseCommits(message: string): parser.ConventionalChangelogCommit[] {
         }
       }
     }
-    console.log('re-formatted:')
-    console.log(formatted)
+    // console.log('re-formatted:')
+    // console.log(formatted)
     // if (formatted.length != 1) {
     //   debugger;
     //   throw new Error(`formatted.length = ${formatted.length}`)
