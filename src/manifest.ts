@@ -639,7 +639,8 @@ export class Manifest {
         this.logger.info(
           `Needed bootstrapping, found configured bootstrapSha ${this.bootstrapSha}`
         );
-        break;
+        throw new Error(`Needed bootstrapping, found configured bootstrapSha ${this.bootstrapSha}`)
+        // break;
       } else if (!needsBootstrap && releaseCommitsFound >= expectedShas) {
         // found enough commits
         break;
@@ -726,6 +727,8 @@ export class Manifest {
       );
       this.logger.debug(`type: ${config.releaseType}`);
       this.logger.debug(`targetBranch: ${this.targetBranch}`);
+      this.logger.debug(`# of commits: ${commitsPerPath[path].length}`);
+      // debugger;
       let pathCommits = parseConventionalCommits(
         commitsPerPath[path],
         this.logger
@@ -1590,6 +1593,7 @@ async function latestReleaseVersion(
     maxResults: 250,
   });
   for await (const commitWithPullRequest of generator) {
+    // debugger;
     commitShas.add(commitWithPullRequest.sha);
     const mergedPullRequest = commitWithPullRequest.pullRequest;
     if (!mergedPullRequest?.mergeCommitOid) {

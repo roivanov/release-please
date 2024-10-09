@@ -22,6 +22,8 @@ import {logger as defaultLogger, Logger} from './util/logger';
 
 import * as parser from '@conventional-commits/parser';
 
+import {DEFAULT_HEADINGS} from './changelog-notes'
+
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const conventionalCommitsFilter = require('conventional-commits-filter');
 
@@ -308,6 +310,8 @@ function toConventionalChangelogFormat(
 // to-conventional-changelog.ts.
 function postProcessCommits(commit: parser.ConventionalChangelogCommit) {
   commit.notes.forEach(note => {
+    // debugger;
+    // method unused?
     let text = '';
     let i = 0;
     let extendedContext = false;
@@ -362,18 +366,55 @@ function hasExtendedContext(line: string) {
 }
 
 function parseCommits(message: string): parser.ConventionalChangelogCommit[] {
-  // logger.debug(`Romani: ${message}`);
+  defaultLogger.debug(`Romani commit message: ${message}`);
   // debugger;
+  // console.log(DEFAULT_HEADINGS)
+  // const ff = ((obj: Map) => Object.fromEntries(
+  //   Object.entries(obj).filter(([key]) => ['subject', 'type', 'header'].includes(key)
+  // )));
+  let ret;
   try {
-    return conventionalCommitsFilter(
-      toConventionalChangelogFormat(parser.parser(message))
+    let parsed = parser.parser(message)
+    // console.log('parsed:')
+    // console.log(parsed)
+    const formatted = toConventionalChangelogFormat(parsed)
+    console.log('formatted:')
+    console.log(formatted)
+    for (let index = 0; index < formatted.length; index++) {
+      const element = formatted[index];
+      if (! Object.keys(DEFAULT_HEADINGS).includes(element.type.toLowerCase())) {
+        switch (element.type) {
+          case 'Signed-off-by':
+            break;
+          default:
+            // subject is everything minus type
+            // header is the original pr header
+            [element.subject, element.header, element.type] =
+            [element.header, `fix(${element.type.toLowerCase()}): ${element.header}`, 'fix']
+
+            formatted[index] = element
+            break;
+        }
+      }
+    }
+    console.log('re-formatted:')
+    console.log(formatted)
+    // if (formatted.length != 1) {
+    //   debugger;
+    //   throw new Error(`formatted.length = ${formatted.length}`)
+    // }
+    ret = conventionalCommitsFilter(
+      formatted
     ).map(postProcessCommits);
+    defaultLogger.debug('is good')
   } catch (_err) {
     defaultLogger.warn(`Updating commit message as the fix: ${message}`);
-    return conventionalCommitsFilter(
+    ret = conventionalCommitsFilter(
       toConventionalChangelogFormat(parser.parser('fix: '+ message))
     ).map(postProcessCommits);
+    defaultLogger.debug('was bad, now good')
   }
+  return ret;
 }
 
 /**
@@ -419,11 +460,14 @@ export function parseConventionalCommits(
 ): ConventionalCommit[] {
   const conventionalCommits: ConventionalCommit[] = [];
 
+  // debugger;
   for (const commit of commits) {
+    logger.info(`Roman commit: ${commit.sha}`)
     for (const commitMessage of splitMessages(
       preprocessCommitMessage(commit)
     )) {
       try {
+        // debugger;
         for (const parsedCommit of parseCommits(commitMessage)) {
           const breaking =
             parsedCommit.notes.filter(note => note.title === 'BREAKING CHANGE')
