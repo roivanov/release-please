@@ -369,6 +369,9 @@ function parseCommits(message: string): parser.ConventionalChangelogCommit[] {
   defaultLogger.debug(`Romani commit message: ${message}`);
   // debugger;
   // console.log(DEFAULT_HEADINGS)
+  // const ff = ((obj: Map) => Object.fromEntries(
+  //   Object.entries(obj).filter(([key]) => ['subject', 'type', 'header'].includes(key)
+  // )));
   let ret;
   try {
     let parsed = parser.parser(message)
@@ -386,9 +389,9 @@ function parseCommits(message: string): parser.ConventionalChangelogCommit[] {
           default:
             // subject is everything minus type
             // header is the original pr header
-            element.subject = element.header
-            element.header = `fix(${element.type.toLowerCase()}):` + element.header
-            element.type = 'fix'
+            [element.subject, element.header, element.type] =
+            [element.header, `fix(${element.type.toLowerCase()}): ${element.header}`, 'fix']
+
             formatted[index] = element
             break;
         }
