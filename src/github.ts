@@ -338,15 +338,16 @@ export class GitHub {
     filter: CommitFilter,
     options: CommitIteratorOptions = {}
   ): Promise<Commit[]> {
-    const commits: Commit[] = [];
-    const generator = this.mergeCommitIterator(targetBranch, options);
-    for await (const commit of generator) {
-      if (filter(commit)) {
-        break;
-      }
-      commits.push(commit);
-    }
-    return commits;
+    throw new Error("Not used")
+    // const commits: Commit[] = [];
+    // const generator = this.mergeCommitIterator(targetBranch, options);
+    // for await (const commit of generator) {
+    //   if (filter(commit)) {
+    //     break;
+    //   }
+    //   commits.push(commit);
+    // }
+    // return commits;
   }
 
   /**
@@ -472,7 +473,9 @@ export class GitHub {
       return null;
     }
     const history = response.repository.ref.target.history;
+    // all commits
     const commits = (history.nodes || []) as GraphQLCommit[];
+    // WHY IS THIS? Is this for PR that was squashed?
     // Count the number of pull requests associated with each merge commit. This is
     // used in the next step to make sure we only find pull requests with a
     // merge commit that contain 1 merged commit.
@@ -575,6 +578,7 @@ export class GitHub {
       for (const f of data.files || []) {
         if (f.filename) {
           files.push(f.filename);
+          // this.logger.debug(`Pushing file: ${f.filename}`);
         }
       }
     }
