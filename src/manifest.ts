@@ -137,6 +137,7 @@ export interface ReleaserConfig {
   skipSnapshot?: boolean;
   // Manifest only
   excludePaths?: string[];
+  additionalPaths?: string[];
 }
 
 export interface CandidateReleasePullRequest {
@@ -183,6 +184,7 @@ interface ReleaserConfigJson {
   'skip-snapshot'?: boolean; // Java-only
   'initial-version'?: string;
   'exclude-paths'?: string[]; // manifest-only
+  'additional-paths'?: string[]; // manifest-only
 }
 
 export interface ManifestOptions {
@@ -637,7 +639,8 @@ export class Manifest {
         this.logger.info(
           `Needed bootstrapping, found configured bootstrapSha ${this.bootstrapSha}`
         );
-        break;
+        throw new Error(`Needed bootstrapping, found configured bootstrapSha ${this.bootstrapSha}`)
+        // break;
       } else if (!needsBootstrap && releaseCommitsFound >= expectedShas) {
         // found enough commits
         break;
@@ -660,7 +663,12 @@ export class Manifest {
     this.logger.info(`Splitting ${commits.length} commits by path`);
     const cs = new CommitSplit({
       includeEmpty: true,
-      packagePaths: Object.keys(this.repositoryConfig),
+      packagePaths: Object.fromEntries(
+        Object.entries(this.repositoryConfig).map(([path, config]) => [
+          path,
+          config.additionalPaths || [],
+        ])
+      ),
     });
     const splitCommits = cs.split(commits);
 
@@ -719,6 +727,8 @@ export class Manifest {
       );
       this.logger.debug(`type: ${config.releaseType}`);
       this.logger.debug(`targetBranch: ${this.targetBranch}`);
+      this.logger.debug(`# of commits: ${commitsPerPath[path].length}`);
+      // debugger;
       let pathCommits = parseConventionalCommits(
         commitsPerPath[path],
         this.logger
@@ -744,6 +754,7 @@ export class Manifest {
         config.draftPullRequest ?? this.draftPullRequest,
         this.labels
       );
+      // debugger;
       if (releasePullRequest) {
         // Update manifest, but only for valid release version - this will skip SNAPSHOT from java strategy
         if (
@@ -923,6 +934,7 @@ export class Manifest {
         );
         if (resultPullRequest) pullRequests.push(resultPullRequest);
       }
+      // debugger;
       return pullRequests;
     } else {
       const promises: Promise<PullRequest | undefined>[] = [];
@@ -936,6 +948,7 @@ export class Manifest {
         );
       }
       const pullNumbers = await Promise.all(promises);
+      // debugger;
       // reject any pull numbers that were not created or updated
       return pullNumbers.filter(number => !!number);
     }
@@ -1015,6 +1028,8 @@ export class Manifest {
       openPullRequest =>
         openPullRequest.headBranchName === pullRequest.headRefName
     );
+    console.log(existing)
+    // debugger;
     if (existing) {
       return await this.maybeUpdateExistingPullRequest(existing, pullRequest);
     }
@@ -1027,6 +1042,7 @@ export class Manifest {
     if (snoozed) {
       return await this.maybeUpdateSnoozedPullRequest(snoozed, pullRequest);
     }
+    // debugger;
 
     const body = await this.pullRequestOverflowHandler.handleOverflow(
       pullRequest
@@ -1061,6 +1077,7 @@ export class Manifest {
     existing: PullRequest,
     pullRequest: ReleasePullRequest
   ): Promise<PullRequest | undefined> {
+    // debugger;
     // If unchanged, no need to push updates
     if (existing.body === pullRequest.body.toString()) {
       this.logger.info(
@@ -1068,6 +1085,8 @@ export class Manifest {
       );
       return undefined;
     }
+    try {
+
     const updatedPullRequest = await this.github.updatePullRequest(
       existing.number,
       pullRequest,
@@ -1079,7 +1098,11 @@ export class Manifest {
       }
     );
     return updatedPullRequest;
-  }
+    } catch (err) {
+      console.log(err)
+      return undefined
+    }
+}
 
   /// only update an snoozed pull request if it has release note changes
   private async maybeUpdateSnoozedPullRequest(
@@ -1110,6 +1133,7 @@ export class Manifest {
 
   private async *findMergedReleasePullRequests() {
     // Find merged release pull requests
+    // debugger;
     const pullRequestGenerator = this.github.pullRequestIterator(
       this.targetBranch,
       'MERGED',
@@ -1386,6 +1410,7 @@ function extractReleaserConfig(
     skipSnapshot: config['skip-snapshot'],
     initialVersion: config['initial-version'],
     excludePaths: config['exclude-paths'],
+    additionalPaths: config['additional-paths'],
   };
 }
 
@@ -1582,6 +1607,7 @@ async function latestReleaseVersion(
     maxResults: 250,
   });
   for await (const commitWithPullRequest of generator) {
+    // debugger;
     commitShas.add(commitWithPullRequest.sha);
     const mergedPullRequest = commitWithPullRequest.pullRequest;
     if (!mergedPullRequest?.mergeCommitOid) {
@@ -1743,6 +1769,8 @@ function mergeReleaserConfig(
     initialVersion: pathConfig.initialVersion ?? defaultConfig.initialVersion,
     extraLabels: pathConfig.extraLabels ?? defaultConfig.extraLabels,
     excludePaths: pathConfig.excludePaths ?? defaultConfig.excludePaths,
+    additionalPaths:
+      pathConfig.additionalPaths ?? defaultConfig.additionalPaths,
   };
 }
 
