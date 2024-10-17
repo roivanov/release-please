@@ -382,6 +382,7 @@ function parseCommits(message: string): parser.ConventionalChangelogCommit[] {
     // console.log(formatted)
     for (let index = 0; index < formatted.length; index++) {
       const element = formatted[index];
+      // debugger;
       if (! Object.keys(DEFAULT_HEADINGS).includes(element.type.toLowerCase())) {
         switch (element.type) {
           case 'Signed-off-by':
@@ -463,6 +464,9 @@ export function parseConventionalCommits(
   // debugger;
   for (const commit of commits) {
     logger.info(`Roman commit: ${commit.sha}`)
+    // if (commit.sha == 'd19bec0e955a53a57ac5bc1f25e2b2f365111dca') {
+    //   debugger;
+    // }
     for (const commitMessage of splitMessages(
       preprocessCommitMessage(commit)
     )) {
@@ -500,6 +504,9 @@ export function parseConventionalCommits(
 }
 
 function preprocessCommitMessage(commit: Commit): string {
+  // if (commit.sha == 'd19bec0e955a53a57ac5bc1f25e2b2f365111dca') {
+  //   debugger;
+  // }
   // look for 'BEGIN_COMMIT_OVERRIDE' section of pull request body
   if (commit.pullRequest) {
     const overrideMessage = (
@@ -511,5 +518,15 @@ function preprocessCommitMessage(commit: Commit): string {
       return overrideMessage;
     }
   }
+
+  const overrideMessage = (
+    commit.message.split('BEGIN_COMMIT_OVERRIDE')[1] || ''
+  )
+    .split('END_COMMIT_OVERRIDE')[0]
+    .trim();
+  if (overrideMessage) {
+    return overrideMessage;
+  }
+
   return commit.message;
 }
