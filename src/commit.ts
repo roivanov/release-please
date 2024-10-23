@@ -310,8 +310,6 @@ function toConventionalChangelogFormat(
 // to-conventional-changelog.ts.
 function postProcessCommits(commit: parser.ConventionalChangelogCommit) {
   commit.notes.forEach(note => {
-    // debugger;
-    // method unused?
     let text = '';
     let i = 0;
     let extendedContext = false;
@@ -366,23 +364,14 @@ function hasExtendedContext(line: string) {
 }
 
 function parseCommits(message: string): parser.ConventionalChangelogCommit[] {
-  defaultLogger.debug(`Romani commit message: ${message}`);
-  // debugger;
-  // console.log(DEFAULT_HEADINGS)
-  // const ff = ((obj: Map) => Object.fromEntries(
-  //   Object.entries(obj).filter(([key]) => ['subject', 'type', 'header'].includes(key)
-  // )));
+  defaultLogger.debug(`ENF Commit message: ${message}`);
+
   let ret;
   try {
     let parsed = parser.parser(message)
-    // console.log('parsed:')
-    // console.log(parsed)
     const formatted = toConventionalChangelogFormat(parsed)
-    // console.log('formatted:')
-    // console.log(formatted)
     for (let index = 0; index < formatted.length; index++) {
       const element = formatted[index];
-      // debugger;
       if (! Object.keys(DEFAULT_HEADINGS).includes(element.type.toLowerCase())) {
         switch (element.type) {
           case 'Signed-off-by':
@@ -399,17 +388,13 @@ function parseCommits(message: string): parser.ConventionalChangelogCommit[] {
         }
       }
     }
-    // console.log('re-formatted:')
-    // console.log(formatted)
-    // if (formatted.length != 1) {
-    //   debugger;
-    //   throw new Error(`formatted.length = ${formatted.length}`)
-    // }
+
     ret = conventionalCommitsFilter(
       formatted
     ).map(postProcessCommits);
     defaultLogger.debug('is good')
   } catch (_err) {
+    // here make everything a fix
     defaultLogger.warn(`Updating commit message as the fix: ${message}`);
     ret = conventionalCommitsFilter(
       toConventionalChangelogFormat(parser.parser('fix: '+ message))
@@ -463,12 +448,11 @@ export function parseConventionalCommits(
   const conventionalCommits: ConventionalCommit[] = [];
 
   for (const commit of commits) {
-    logger.info(`Roman commit: ${commit.sha}`)
+    logger.info(`ENF commit: ${commit.sha}`)
     for (const commitMessage of splitMessages(
       preprocessCommitMessage(commit)
     )) {
       try {
-        // debugger;
         for (const parsedCommit of parseCommits(commitMessage)) {
           const breaking =
             parsedCommit.notes.filter(note => note.title === 'BREAKING CHANGE')

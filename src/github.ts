@@ -338,16 +338,15 @@ export class GitHub {
     filter: CommitFilter,
     options: CommitIteratorOptions = {}
   ): Promise<Commit[]> {
-    throw new Error("Not used")
-    // const commits: Commit[] = [];
-    // const generator = this.mergeCommitIterator(targetBranch, options);
-    // for await (const commit of generator) {
-    //   if (filter(commit)) {
-    //     break;
-    //   }
-    //   commits.push(commit);
-    // }
-    // return commits;
+    const commits: Commit[] = [];
+    const generator = this.mergeCommitIterator(targetBranch, options);
+    for await (const commit of generator) {
+      if (filter(commit)) {
+        break;
+      }
+      commits.push(commit);
+    }
+    return commits;
   }
 
   /**
@@ -578,7 +577,6 @@ export class GitHub {
       for (const f of data.files || []) {
         if (f.filename) {
           files.push(f.filename);
-          // this.logger.debug(`Pushing file: ${f.filename}`);
         }
       }
     }
