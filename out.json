@@ -1,0 +1,13 @@
+[
+  {
+    "headBranchName": "release-please--branches--master--components--mcud",
+    "baseBranchName": "master",
+    "number": 27,
+    "title": "chore(master): release mcud 0.1.1",
+    "body": ":robot: I have created a release *beep* *boop*\n---\n\n\n## [0.1.1](https://github.com/roivanov/enf/compare/mcud@v0.1.0...mcud@v0.1.1) (2024-10-23)\n\n\n### Bug Fixes\n\n* **bazel:** depend only on 1 arch for driver deps ([8320a7b](https://github.com/roivanov/enf/commit/8320a7b6b1aa9d5a90a1f13582dc5bb645b0d18b))\n* **bazel:** Move pytest args to a generated file ([#47519](https://github.com/roivanov/enf/issues/47519)) ([9d28c71](https://github.com/roivanov/enf/commit/9d28c7172ae4d8713ba76615fe70a690df0032ad))\n* **bazel:** Remove reliance on command-line args in en_py_test -&gt; pytest ([9d28c71](https://github.com/roivanov/enf/commit/9d28c7172ae4d8713ba76615fe70a690df0032ad))\n* mcud: implement changes to support systest multi-pf qemu tests ([#47842](https://github.com/roivanov/enf/issues/47842)) ([a9090e0](https://github.com/roivanov/enf/commit/a9090e0884482b845c2a8b685d06c2d5fc045947))\n\n---\nThis PR was generated with [Release Please](https://github.com/googleapis/release-please). See [documentation](https://github.com/googleapis/release-please#release-please).",
+    "files": [],
+    "labels": [
+      "autorelease: pending"
+    ]
+  }
+]

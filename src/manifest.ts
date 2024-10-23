@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import {writeFile} from 'fs';
+
 import {ChangelogSection} from './changelog-notes';
 import {GitHub, GitHubRelease, GitHubTag} from './github';
 import {Version, VersionsMap} from './version';
@@ -743,6 +745,13 @@ export class Manifest {
         commitsPerPath[path],
         this.logger
       );
+      console.log(pathCommits);
+      writeFile('dump.json', JSON.stringify(pathCommits, null, 2), (err) => {
+        if (err) {
+          console.error("Error writing file:", err);
+        }
+      });
+      debugger;
       // The processCommits hook can be implemented by plugins to
       // post-process commits. This can be used to perform cleanup, e.g,, sentence
       // casing all commit messages:
@@ -750,6 +759,7 @@ export class Manifest {
         pathCommits = plugin.processCommits(pathCommits);
       }
       this.logger.debug(`commits: ${pathCommits.length}`);
+      debugger;
       const latestReleasePullRequest =
         releasePullRequestsBySha[releaseShasByPath[path]];
       if (!latestReleasePullRequest) {

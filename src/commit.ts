@@ -462,12 +462,8 @@ export function parseConventionalCommits(
 ): ConventionalCommit[] {
   const conventionalCommits: ConventionalCommit[] = [];
 
-  // debugger;
   for (const commit of commits) {
     logger.info(`Roman commit: ${commit.sha}`)
-    // if (commit.sha == 'd19bec0e955a53a57ac5bc1f25e2b2f365111dca') {
-    //   debugger;
-    // }
     for (const commitMessage of splitMessages(
       preprocessCommitMessage(commit)
     )) {
@@ -505,10 +501,8 @@ export function parseConventionalCommits(
 }
 
 function preprocessCommitMessage(commit: Commit): string {
-  // console.log(commit)
   // look for 'BEGIN_COMMIT_OVERRIDE' section of pull request body
   if (commit.pullRequest) {
-    // debugger;
     const overrideMessage = (
       commit.pullRequest.body.split('BEGIN_COMMIT_OVERRIDE')[1] || ''
     )
@@ -526,7 +520,6 @@ function preprocessCommitMessage(commit: Commit): string {
     .split('END_COMMIT_OVERRIDE')[0]
     .trim();
   if (overrideMessage) {
-    // debugger;
     return overrideMessage;
   }
 
