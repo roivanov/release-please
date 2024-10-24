@@ -16,6 +16,7 @@
 
 import {coerceOption} from '../util/coerce-option';
 import * as yargs from 'yargs';
+import {writeFile} from 'fs';
 import {GitHub, GH_API_URL, GH_GRAPHQL_URL} from '../github';
 import {Manifest, ManifestOptions, ROOT_PROJECT_PATH} from '../manifest';
 import {ChangelogSection, buildChangelogSections} from '../changelog-notes';
@@ -283,7 +284,7 @@ function pullRequestStrategyOptions(yargs: yargs.Argv): yargs.Argv {
       type: 'string',
     })
     .option('extra-files', {
-      describe: 'extra files for the strategy to consider',
+      describe: 'extra files for the strategy to update',
       type: 'string',
       coerce(arg?: string) {
         if (arg) {
@@ -395,6 +396,10 @@ function manifestOptions(yargs: yargs.Argv): yargs.Argv {
     .option('config-file', {
       default: 'release-please-config.json',
       describe: 'where can the config file be found in the project?',
+    })
+    .option('json', {
+      default: null,
+      describe: 'save json output to a file',
     })
     .option('manifest-file', {
       default: '.release-please-manifest.json',
@@ -533,6 +538,17 @@ const createReleasePullRequestCommand: yargs.CommandModule<
       }
     } else {
       const pullRequestNumbers = await manifest.createPullRequests();
+      if (argv.json) {
+        writeFile(
+          argv.json.toString(),
+          JSON.stringify(pullRequestNumbers, null, 2),
+          err => {
+            if (err) {
+              console.error('Error writing file:', err);
+            }
+          }
+        );
+      }
       console.log(pullRequestNumbers);
     }
   },
@@ -598,6 +614,17 @@ const createReleaseCommand: yargs.CommandModule<{}, CreateReleaseArgs> = {
       }
     } else {
       const releaseNumbers = await manifest.createReleases();
+      if (argv.json) {
+        writeFile(
+	  argv.json.toString(),
+          JSON.stringify(releaseNumbers, null, 2),
+          err => {
+            if (err) {
+              console.error('Error writing file:', err);
+            }
+          }
+        );
+      }
       console.log(releaseNumbers);
     }
   },
