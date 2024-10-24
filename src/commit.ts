@@ -367,7 +367,7 @@ function parseCommits(message: string): parser.ConventionalChangelogCommit[] {
   defaultLogger.debug(`ENF Commit message: ${message}`);
 
   let ret;
-  try {
+  // try {
     let parsed = parser.parser(message)
     const formatted = toConventionalChangelogFormat(parsed)
     for (let index = 0; index < formatted.length; index++) {
@@ -392,15 +392,15 @@ function parseCommits(message: string): parser.ConventionalChangelogCommit[] {
     ret = conventionalCommitsFilter(
       formatted
     ).map(postProcessCommits);
-    defaultLogger.debug('is good')
-  } catch (_err) {
-    // here make everything a fix
-    defaultLogger.warn(`Updating commit message as the fix: ${message}`);
-    ret = conventionalCommitsFilter(
-      toConventionalChangelogFormat(parser.parser('fix: '+ message))
-    ).map(postProcessCommits);
-    defaultLogger.debug('was bad, now good')
-  }
+  //   defaultLogger.debug('is good')
+  // } catch (_err) {
+  //   // here make everything a fix
+  //   defaultLogger.warn(`Updating commit message as the fix: ${message}`);
+  //   ret = conventionalCommitsFilter(
+  //     toConventionalChangelogFormat(parser.parser('fix: '+ message))
+  //   ).map(postProcessCommits);
+  //   defaultLogger.debug('was bad, now good')
+  // }
   return ret;
 }
 
