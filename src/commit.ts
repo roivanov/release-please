@@ -22,7 +22,7 @@ import {logger as defaultLogger, Logger} from './util/logger';
 
 import * as parser from '@conventional-commits/parser';
 
-import {DEFAULT_HEADINGS} from './changelog-notes'
+import {DEFAULT_HEADINGS} from './changelog-notes';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const conventionalCommitsFilter = require('conventional-commits-filter');
