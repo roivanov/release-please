@@ -4,6 +4,35 @@
 
 [1]: https://www.npmjs.com/package/release-please?activeTab=versions
 
+## [16.15.0](https://github.com/googleapis/release-please/compare/v16.14.4...v16.15.0) (2024-11-13)
+
+
+### Features
+
+* add `always-update` option to push to always push to release branch ([72d40df](https://github.com/googleapis/release-please/commit/72d40df677b08fd52654a4c3b320649f63b9c635))
+
+## [16.14.4](https://github.com/googleapis/release-please/compare/v16.14.3...v16.14.4) (2024-11-12)
+
+
+### Bug Fixes
+
+* **deps:** update dependency jsonpath-plus to v10.0.7 [security] ([#2427](https://github.com/googleapis/release-please/issues/2427)) ([f9614e3](https://github.com/googleapis/release-please/commit/f9614e30557a4a0741005f761da87417834d6871))
+
+## [16.14.3](https://github.com/googleapis/release-please/compare/v16.14.2...v16.14.3) (2024-10-15)
+
+
+### Bug Fixes
+
+* **deps:** bump jsonpath-plus from 9.0.0 to 10.0.0 ([ab989e4](https://github.com/googleapis/release-please/commit/ab989e41032ab6eca2938ea46521792440fb0882))
+
+## [16.14.2](https://github.com/googleapis/release-please/compare/v16.14.1...v16.14.2) (2024-10-08)
+
+
+### Bug Fixes
+
+* **java-yoshi:** match full artifact id when updating versions ([#2398](https://github.com/googleapis/release-please/issues/2398)) ([e062dc1](https://github.com/googleapis/release-please/commit/e062dc1b73b336b021f62971c50917d6ca4c266b))
+* make workspace plugin with `separate-pull-request` fine ([#2310](https://github.com/googleapis/release-please/issues/2310)) ([15c75a9](https://github.com/googleapis/release-please/commit/15c75a92761f844dfeb8dec36efbb15af6848e27))
+
 ## [16.14.1](https://github.com/googleapis/release-please/compare/v16.14.0...v16.14.1) (2024-10-01)
 
 
