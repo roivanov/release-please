@@ -22,6 +22,8 @@ import {logger as defaultLogger, Logger} from './util/logger';
 
 import * as parser from '@conventional-commits/parser';
 
+import {DEFAULT_HEADINGS} from './changelog-notes';
+
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const conventionalCommitsFilter = require('conventional-commits-filter');
 
@@ -362,9 +364,44 @@ function hasExtendedContext(line: string) {
 }
 
 function parseCommits(message: string): parser.ConventionalChangelogCommit[] {
-  return conventionalCommitsFilter(
-    toConventionalChangelogFormat(parser.parser(message))
-  ).map(postProcessCommits);
+  defaultLogger.debug(`ENF Commit message: ${message}`);
+
+  let ret;
+  // try {
+    let parsed = parser.parser(message)
+    const formatted = toConventionalChangelogFormat(parsed)
+    for (let index = 0; index < formatted.length; index++) {
+      const element = formatted[index];
+      if (! Object.keys(DEFAULT_HEADINGS).includes(element.type.toLowerCase())) {
+        switch (element.type) {
+          case 'Signed-off-by':
+            break;
+          default:
+            // fallback to fix
+            // subject is everything minus type
+            // header is the original pr header
+            // [element.subject, element.header, element.type] =
+            // [element.header, `fix(${element.type.toLowerCase()}): ${element.header}`, 'fix']
+
+            // formatted[index] = element
+            break;
+        }
+      }
+    }
+
+    ret = conventionalCommitsFilter(
+      formatted
+    ).map(postProcessCommits);
+  //   defaultLogger.debug('is good')
+  // } catch (_err) {
+  //   // here make everything a fix
+  //   defaultLogger.warn(`Updating commit message as the fix: ${message}`);
+  //   ret = conventionalCommitsFilter(
+  //     toConventionalChangelogFormat(parser.parser('fix: '+ message))
+  //   ).map(postProcessCommits);
+  //   defaultLogger.debug('was bad, now good')
+  // }
+  return ret;
 }
 
 /**
@@ -411,6 +448,7 @@ export function parseConventionalCommits(
   const conventionalCommits: ConventionalCommit[] = [];
 
   for (const commit of commits) {
+    logger.info(`ENF commit: ${commit.sha}`)
     for (const commitMessage of splitMessages(
       preprocessCommitMessage(commit)
     )) {
@@ -458,5 +496,16 @@ function preprocessCommitMessage(commit: Commit): string {
       return overrideMessage;
     }
   }
+
+  // look for 'BEGIN_COMMIT_OVERRIDE' section of commit body
+  const overrideMessage = (
+    commit.message.split('BEGIN_COMMIT_OVERRIDE')[1] || ''
+  )
+    .split('END_COMMIT_OVERRIDE')[0]
+    .trim();
+  if (overrideMessage) {
+    return overrideMessage;
+  }
+
   return commit.message;
 }

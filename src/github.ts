@@ -468,7 +468,9 @@ export class GitHub {
       return null;
     }
     const history = response.repository.ref.target.history;
+    // all commits
     const commits = (history.nodes || []) as GraphQLCommit[];
+    // WHY IS THIS? Is this for PR that was squashed?
     // Count the number of pull requests associated with each merge commit. This is
     // used in the next step to make sure we only find pull requests with a
     // merge commit that contain 1 merged commit.

@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import {writeFile} from 'fs';
+
 import {ChangelogSection} from './changelog-notes';
 import {GitHub, GitHubRelease, GitHubTag} from './github';
 import {Version, VersionsMap} from './version';
@@ -137,6 +139,7 @@ export interface ReleaserConfig {
   skipSnapshot?: boolean;
   // Manifest only
   excludePaths?: string[];
+  additionalPaths?: string[];
 }
 
 export interface CandidateReleasePullRequest {
@@ -183,6 +186,7 @@ interface ReleaserConfigJson {
   'skip-snapshot'?: boolean; // Java-only
   'initial-version'?: string;
   'exclude-paths'?: string[]; // manifest-only
+  'additional-paths'?: string[]; // manifest-only
 }
 
 export interface ManifestOptions {
@@ -666,7 +670,12 @@ export class Manifest {
     this.logger.info(`Splitting ${commits.length} commits by path`);
     const cs = new CommitSplit({
       includeEmpty: true,
-      packagePaths: Object.keys(this.repositoryConfig),
+      packagePaths: Object.fromEntries(
+        Object.entries(this.repositoryConfig).map(([path, config]) => [
+          path,
+          config.additionalPaths || [],
+        ])
+      ),
     });
     const splitCommits = cs.split(commits);
 
@@ -725,10 +734,16 @@ export class Manifest {
       );
       this.logger.debug(`type: ${config.releaseType}`);
       this.logger.debug(`targetBranch: ${this.targetBranch}`);
+      this.logger.debug(`# of commits: ${commitsPerPath[path].length}`);
       let pathCommits = parseConventionalCommits(
         commitsPerPath[path],
         this.logger
       );
+      writeFile('.commits_dump.json', JSON.stringify(pathCommits, null, 2), (err) => {
+        if (err) {
+          console.error("Error writing file:", err);
+        }
+      });
       // The processCommits hook can be implemented by plugins to
       // post-process commits. This can be used to perform cleanup, e.g,, sentence
       // casing all commit messages:
@@ -1397,6 +1412,7 @@ function extractReleaserConfig(
     skipSnapshot: config['skip-snapshot'],
     initialVersion: config['initial-version'],
     excludePaths: config['exclude-paths'],
+    additionalPaths: config['additional-paths'],
   };
 }
 
@@ -1755,6 +1771,8 @@ function mergeReleaserConfig(
     initialVersion: pathConfig.initialVersion ?? defaultConfig.initialVersion,
     extraLabels: pathConfig.extraLabels ?? defaultConfig.extraLabels,
     excludePaths: pathConfig.excludePaths ?? defaultConfig.excludePaths,
+    additionalPaths:
+      pathConfig.additionalPaths ?? defaultConfig.additionalPaths,
   };
 }
 
