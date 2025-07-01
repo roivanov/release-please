@@ -1097,17 +1097,7 @@ export class Manifest {
       );
       return undefined;
     }
-    const updatedPullRequest = await this.github.updatePullRequest(
-      existing.number,
-      pullRequest,
-      this.targetBranch,
-      {
-        fork: this.fork,
-        signoffUser: this.signoffUser,
-        pullRequestOverflowHandler: this.pullRequestOverflowHandler,
-      }
-    );
-    return updatedPullRequest;
+    return await this.updateExistingPullRequest(existing, pullRequest);
   }
 
   /// only update a snoozed pull request if it has release note changes
