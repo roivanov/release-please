@@ -122,6 +122,7 @@ export interface ReleaserConfig {
   releaseLabels?: string[];
   extraLabels?: string[];
   initialVersion?: string;
+  dateFormat?: string;
 
   // Changelog options
   changelogSections?: ChangelogSection[];
@@ -185,6 +186,7 @@ interface ReleaserConfigJson {
   'initial-version'?: string;
   'exclude-paths'?: string[]; // manifest-only
   'additional-paths'?: string[]; // manifest-only
+  'date-format'?: string;
 }
 
 export interface ManifestOptions {
@@ -209,6 +211,7 @@ export interface ManifestOptions {
   releaseSearchDepth?: number;
   commitSearchDepth?: number;
   logger?: Logger;
+  dateFormat?: string;
 }
 
 export interface ReleaserPackageConfig extends ReleaserConfigJson {
@@ -290,6 +293,7 @@ export interface CreatedRelease extends GitHubRelease {
   major: number;
   minor: number;
   patch: number;
+  prNumber: number;
 }
 
 export class Manifest {
@@ -1255,7 +1259,7 @@ export class Manifest {
       // stop releasing once we hit an error
       if (error) continue;
       try {
-        githubReleases.push(await this.createRelease(release));
+        githubReleases.push(await this.createRelease(release, pullRequest));
       } catch (err) {
         if (err instanceof DuplicateReleaseError) {
           this.logger.warn(`Duplicate release tag: ${release.tag.toString()}`);
@@ -1306,7 +1310,8 @@ export class Manifest {
   }
 
   private async createRelease(
-    release: CandidateRelease
+    release: CandidateRelease,
+    pullRequest: PullRequest
   ): Promise<CreatedRelease> {
     const githubRelease = await this.github.createRelease(release, {
       draft: release.draft,
@@ -1320,6 +1325,7 @@ export class Manifest {
       major: release.tag.version.major,
       minor: release.tag.version.minor,
       patch: release.tag.version.patch,
+      prNumber: pullRequest.number,
     };
   }
 
@@ -1405,6 +1411,7 @@ function extractReleaserConfig(
     initialVersion: config['initial-version'],
     excludePaths: config['exclude-paths'],
     additionalPaths: config['additional-paths'],
+    dateFormat: config['date-format'],
   };
 }
 
@@ -1765,6 +1772,7 @@ function mergeReleaserConfig(
     excludePaths: pathConfig.excludePaths ?? defaultConfig.excludePaths,
     additionalPaths:
       pathConfig.additionalPaths ?? defaultConfig.additionalPaths,
+    dateFormat: pathConfig.dateFormat ?? defaultConfig.dateFormat,
   };
 }
 
